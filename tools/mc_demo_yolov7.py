@@ -6,7 +6,12 @@ import sys
 import cv2
 import torch
 import torch.backends.cudnn as cudnn
+
+from tqdm import tqdm
 from numpy import random
+
+sys.path.insert(0, './yolov7')
+sys.path.append('.')
 
 from yolov7.models.experimental import attempt_load
 from yolov7.utils.datasets import LoadStreams, LoadImages
@@ -19,8 +24,6 @@ from yolov7.utils.torch_utils import select_device, load_classifier, time_synchr
 from tracker.mc_bot_sort import BoTSORT
 from tracker.tracking_utils.timer import Timer
 
-sys.path.insert(0, './yolov7')
-sys.path.append('.')
 
 def write_results(filename, results):
     save_format = '{frame},{id},{x1},{y1},{w},{h},{s},-1,-1,-1\n'
@@ -87,8 +90,15 @@ def detect(save_img=False):
     # Run inference
     if device.type != 'cpu':
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
+        
     t0 = time.time()
-    for path, img, im0s, vid_cap in dataset:
+    
+    # Process detections
+    results = []
+    frameID = 0
+
+    for path, img, im0s, vid_cap in tqdm(dataset, desc='tracking'):
+        frameID += 1
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
@@ -107,9 +117,6 @@ def detect(save_img=False):
         if classify:
             pred = apply_classifier(pred, modelc, img, im0s)
 
-        # Process detections
-        results = []
-
         for i, det in enumerate(pred):  # detections per image
             if webcam:  # batch_size >= 1
                 p, s, im0, frame = path[i], '%g: ' % i, im0s[i].copy(), dataset.count
@@ -124,7 +131,7 @@ def detect(save_img=False):
                 detections = det.cpu().numpy()
                 detections[:, :4] = boxes
 
-            online_targets = tracker.update(detections, im0)
+            online_targets = tracker.update(detections, im0, frameID)
 
             online_tlwhs = []
             online_ids = []
@@ -141,17 +148,21 @@ def detect(save_img=False):
                     online_scores.append(t.score)
                     online_cls.append(t.cls)
 
-                    # save results
-                    results.append(
-                        f"{i + 1},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f},{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
-                    )
-
                     if save_img or view_img:  # Add bbox to image
                         if opt.hide_labels_name:
                             label = f'{tid}, {int(tcls)}'
                         else:
                             label = f'{tid}, {names[int(tcls)]}'
-                        plot_one_box(tlbr, im0, label=label, color=colors[int(tid) % len(colors)], line_thickness=2)
+                        
+                        if 'car' in label:
+                            # save results
+                            results.append(
+                                f"{frameID},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f},{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
+                            )
+
+                            plot_one_box(tlbr, im0, label=label, color=colors[int(tid) % len(colors)], line_thickness=2)
+
+                            
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # img.jpg
 
@@ -183,8 +194,10 @@ def detect(save_img=False):
                     vid_writer.write(im0)
 
     if save_txt or save_img:
-        s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
-        # print(f"Results saved to {save_dir}{s}")
+        with open(save_dir / "out.txt", 'w') as f:
+            f.writelines(results)
+            
+        print(f"Results saved to {save_dir}")
 
     print(f'Done. ({time.time() - t0:.3f}s)')
 

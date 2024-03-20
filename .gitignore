@@ -16,6 +16,7 @@ fast_reid/datasets/AICUP-ReID
 
 # folder
 /runs
+/eval_test
 
 # models
 *.pt

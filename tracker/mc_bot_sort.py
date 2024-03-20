@@ -9,6 +9,7 @@ from tracker.basetrack import BaseTrack, TrackState
 from tracker.kalman_filter import KalmanFilter
 
 from fast_reid.fast_reid_interfece import FastReIDInterface
+from yolov7.utils.plots import plot_one_box
 
 
 class STrack(BaseTrack):
@@ -147,6 +148,9 @@ class STrack(BaseTrack):
 
         new_tlwh = new_track.tlwh
 
+        # update new bbox axis from yolo
+        self._tlwh = new_tlwh
+
         self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance, self.tlwh_to_xywh(new_tlwh))
 
         if new_track.curr_feat is not None:
@@ -163,11 +167,13 @@ class STrack(BaseTrack):
         """Get current position in bounding box format `(top left x, top left y,
                 width, height)`.
         """
-        if self.mean is None:
-            return self._tlwh.copy()
-        ret = self.mean[:4].copy()
-        ret[:2] -= ret[2:] / 2
-        return ret
+        # if self.mean is None:
+        #     return self._tlwh.copy()
+        # ret = self.mean[:4].copy()
+        # ret[:2] -= ret[2:] / 2
+        # return ret
+
+        return self._tlwh.copy()
 
     @property
     def tlbr(self):
@@ -253,7 +259,7 @@ class BoTSORT(object):
 
         self.gmc = GMC(method=args.cmc_method, verbose=[args.name, args.ablation])
 
-    def update(self, output_results, img):
+    def update(self, output_results, img, frameID=0):
         self.frame_id += 1
         activated_starcks = []
         refind_stracks = []
@@ -291,6 +297,14 @@ class BoTSORT(object):
         if self.args.with_reid:
             features_keep = self.encoder.inference(img, dets)
 
+
+        # # plot original bbox from yolo
+        # img_debug = img.copy()
+        # for tlbr in dets:
+        #     plot_one_box(tlbr, img_debug, label='car', line_thickness=2)
+
+        # cv2.imwrite(f'frame{frameID}.jpg', img_debug)
+
         if len(dets) > 0:
             '''Detections'''
             if self.args.with_reid:
@@ -314,13 +328,13 @@ class BoTSORT(object):
         ''' Step 2: First association, with high score detection boxes'''
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
 
-        # Predict the current location with KF
-        STrack.multi_predict(strack_pool)
+        # # Predict the current location with KF
+        # STrack.multi_predict(strack_pool)
 
-        # Fix camera motion
-        warp = self.gmc.apply(img, dets)
-        STrack.multi_gmc(strack_pool, warp)
-        STrack.multi_gmc(unconfirmed, warp)
+        # # Fix camera motion
+        # warp = self.gmc.apply(img, dets)
+        # STrack.multi_gmc(strack_pool, warp)
+        # STrack.multi_gmc(unconfirmed, warp)
 
         # Associate with high score detection boxes
         ious_dists = matching.iou_distance(strack_pool, detections)
@@ -333,8 +347,13 @@ class BoTSORT(object):
             emb_dists = matching.embedding_distance(strack_pool, detections) / 2.0
             raw_emb_dists = emb_dists.copy()
             emb_dists[emb_dists > self.appearance_thresh] = 1.0
-            emb_dists[ious_dists_mask] = 1.0
-            dists = np.minimum(ious_dists, emb_dists)
+
+            # original
+            # emb_dists[ious_dists_mask] = 1.0
+            # dists = np.minimum(ious_dists, emb_dists)
+
+            # Only use reid feature as distance(without iou)
+            dists = emb_dists
 
             # Popular ReID method (JDE / FairMOT)
             # raw_emb_dists = matching.embedding_distance(strack_pool, detections)

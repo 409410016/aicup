@@ -3,6 +3,9 @@ from loguru import logger
 import torch
 import torch.backends.cudnn as cudnn
 
+import sys
+sys.path.append('.')
+
 from yolox.core import Trainer, launch
 from yolox.exp import get_exp
 
