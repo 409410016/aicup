@@ -20,7 +20,7 @@
 ## ToDo
 - [ ] Fine-tune `yolov7`
 - [ ] Implement The output of the `demo code`
-- [ ] Upload baseline score
+- [ ] Implement single camera evaluation code
 - [ ] Release test set
 
 ### Visualization results on AICUP train_set

@@ -173,6 +173,7 @@ class STrack(BaseTrack):
         # ret[:2] -= ret[2:] / 2
         # return ret
 
+        # We disable the kalman filter output
         return self._tlwh.copy()
 
     @property
@@ -352,7 +353,7 @@ class BoTSORT(object):
             # emb_dists[ious_dists_mask] = 1.0
             # dists = np.minimum(ious_dists, emb_dists)
 
-            # Only use reid feature as distance(without iou)
+            # Only use reid feature as distance(without bbox iou)
             dists = emb_dists
 
             # Popular ReID method (JDE / FairMOT)
@@ -386,21 +387,36 @@ class BoTSORT(object):
             dets_second = bboxes[inds_second]
             scores_second = scores[inds_second]
             classes_second = classes[inds_second]
+
+            if self.args.with_reid:
+                features_second = self.encoder.inference(img, dets_second)
+
         else:
             dets_second = []
             scores_second = []
             classes_second = []
+            features_second = []
 
         # association the untrack to the low score detections
         if len(dets_second) > 0:
             '''Detections'''
-            detections_second = [STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for
-                                 (tlbr, s, c) in zip(dets_second, scores_second, classes_second)]
+            # detections_second = [STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for
+            #                      (tlbr, s, c) in zip(dets_second, scores_second, classes_second)]
+            
+            detections_second = [STrack(STrack.tlbr_to_tlwh(tlbr), s, c, f) for
+                                 (tlbr, s, c, f) in zip(dets_second, scores_second, classes_second, features_second)]
         else:
             detections_second = []
 
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
-        dists = matching.iou_distance(r_tracked_stracks, detections_second)
+
+        # bbox iou distance
+        # dists = matching.iou_distance(r_tracked_stracks, detections_second)
+
+        # Used ReID features
+        dists = matching.embedding_distance(r_tracked_stracks, detections_second) / 2.0
+        dists[dists > self.appearance_thresh] = 1.0
+
         matches, u_track, u_detection_second = matching.linear_assignment(dists, thresh=0.5)
         for itracked, idet in matches:
             track = r_tracked_stracks[itracked]

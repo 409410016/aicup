@@ -18,6 +18,10 @@ fast_reid/datasets/AICUP-ReID
 /runs
 /eval_test
 
+# tools
+generate_video.py
+*.mp4
+
 # models
 *.pt
 

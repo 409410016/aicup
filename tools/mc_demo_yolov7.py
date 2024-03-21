@@ -25,20 +25,6 @@ from tracker.mc_bot_sort import BoTSORT
 from tracker.tracking_utils.timer import Timer
 
 
-def write_results(filename, results):
-    save_format = '{frame},{id},{x1},{y1},{w},{h},{s},-1,-1,-1\n'
-    with open(filename, 'w') as f:
-        for frame_id, tlwhs, track_ids, scores in results:
-            for tlwh, track_id, score in zip(tlwhs, track_ids, scores):
-                if track_id < 0:
-                    continue
-                x1, y1, w, h = tlwh
-                line = save_format.format(frame=frame_id, id=track_id, x1=round(x1, 1), y1=round(y1, 1), w=round(w, 1),
-                                          h=round(h, 1), s=round(score, 2))
-                f.write(line)
-    print('save results to {}'.format(filename))
-
-
 def detect(save_img=False):
     source, weights, view_img, save_txt, imgsz, trace = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, opt.trace
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
@@ -154,7 +140,7 @@ def detect(save_img=False):
                         else:
                             label = f'{tid}, {names[int(tcls)]}'
                         
-                        if 'car' in label:
+                        if 'car' in label: # AICUP only have one cls: car
                             # save results
                             results.append(
                                 f"{frameID},{tid},{tlwh[0]:.2f},{tlwh[1]:.2f},{tlwh[2]:.2f},{tlwh[3]:.2f},{t.score:.2f},-1,-1,-1\n"
