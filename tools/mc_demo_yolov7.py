@@ -83,7 +83,7 @@ def detect(save_img=False):
     results = []
     frameID = 0
 
-    for path, img, im0s, vid_cap in tqdm(dataset, desc='tracking'):
+    for path, img, im0s, vid_cap in tqdm(dataset, desc=f'tracking {opt.name}'):
         frameID += 1
         img = torch.from_numpy(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
@@ -180,7 +180,7 @@ def detect(save_img=False):
                     vid_writer.write(im0)
 
     if save_txt or save_img:
-        with open(save_dir / "out.txt", 'w') as f:
+        with open(save_dir / f"{opt.name}.txt", 'w') as f:
             f.writelines(results)
             
         print(f"Results saved to {save_dir}")

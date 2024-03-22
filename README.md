@@ -19,8 +19,10 @@
 
 ## ToDo
 - [ ] Fine-tune `yolov7`
-- [ ] Implement The output of the `demo code`
+- [ ] Complete `yolov7` guide
+- [x] Implement The output of the `demo code`
 - [ ] Implement single camera evaluation code
+- [ ] Visualize results on AICUP train_set
 - [ ] Release test set
 
 ### Visualization results on AICUP train_set
@@ -28,7 +30,7 @@
 
 ## Installation
 
-The code was tested on Ubuntu 20.04
+**The code was tested on Ubuntu 20.04 & 22.04**
 
 BoT-SORT code is based on ByteTrack and FastReID. <br>
 Visit their installation guides for more setup options.
@@ -44,19 +46,29 @@ The code was tested using torch 1.11.0+cu113 and torchvision==0.12.0
 
 **Step 3.** Fork this Repository and clone your Repository to your device
 
-**Step 4.** Install [pycocotools](https://github.com/cocodataset/cocoapi).
+**Step 4.** **Install numpy first!!**
 ```shell
-pip3 install cython; pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
+pip install numpy
 ```
 
-Step 5. Others
+**Step 5.** Install `requirement.txt`
+```shell
+pip install -r requirement.txt
+```
+
+**Step 6.** Install [pycocotools](https://github.com/cocodataset/cocoapi).
+```shell
+pip install cython; pip3 install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
+```
+
+**Step 7.** Others
 ```shell
 # Cython-bbox
-pip3 install cython_bbox
+pip install cython_bbox
 
 # faiss cpu / gpu
-pip3 install faiss-cpu
-pip3 install faiss-gpu
+pip install faiss-cpu
+pip install faiss-gpu
 ```
 
 ## Data Preparation
@@ -134,7 +146,7 @@ For training the ReID, detection patches must be generated as follows:
 cd <BoT-SORT_dir>
 
 # For AICUP 
-python fast_reid/datasets/generate_AICUP_patches.py --data_path <dataets_dir>
+python fast_reid/datasets/generate_AICUP_patches.py --data_path <dataets_dir>/AI_CUP_MCMOT_dataset/train
 ```
 
 > [!TIP]
@@ -167,7 +179,9 @@ python3 fast_reid/tools/train_net.py --config-file fast_reid/configs/AICUP/bagtr
 
 The training results are stored by default in ```logs/AICUP/bagtricks_R50-ibn```. The storage location and model hyperparameters can be modified in ```fast_reid/configs/AICUP/bagtricks_R50-ibn.yml```.
 
-Refer to [FastReID](https://github.com/JDAI-CV/fast-reid)  repository for addition explanations and options.
+You can refer to `fast_reid/fastreid/config/defaults.py` to find out which hyperparameters can be modified.
+
+Refer to [FastReID](https://github.com/JDAI-CV/fast-reid) repository for addition explanations and options.
 
 > [!IMPORTANT]  
 > Since we did not generate the `query` and `gallery` datasets required for evaluation when producing the ReID dataset (`MOT17_ReID` provided by BoT-SORT also not provide them), please skip the following TrackBack when encountered after training completion.
@@ -185,27 +199,26 @@ File "./fast_reid/fastreid/evaluation/reid_evaluation.py", line 107, in evaluate
 AssertionError: Error: all query identities do not appear in gallery
 ```
 
-## Tracking (Demo)
+### Train the YOLOv7 for AICUP
+ToDo
+
+## Tracking for AICUP (Demo)
 > [!TIP]
 > We recommend using YOLOv7 as the object detection model for tracking
 
-Track AICUP with BoT-SORT(-ReID) based YOLOv7 and multi-class.
+Track one `<timestamp>` with BoT-SORT(-ReID) based YOLOv7 and multi-class (We only output class: 'car').
 ```shell
 cd <BoT-SORT_dir>
-python3 tools/mc_demo_yolov7.py --weights pretrained/yolov7-e6e.pt --source AI_CUP_MCMOT_dataset/train/images/0903_150000_151900 --fuse-score --agnostic-nms --with-reid --fast-reid-config fast_reid/configs/AICUP/bagtricks_R50-ibn.yml --fast-reid-weights logs/AICUP/bagtricks_R50-ibn/model_0058.pth
+python3 tools/mc_demo_yolov7.py --weights pretrained/yolov7-e6e.pt --source AI_CUP_MCMOT_dataset/train/images/<timestamp> --device "0" --name "<timestamp>" --fuse-score --agnostic-nms --with-reid --fast-reid-config fast_reid/configs/AICUP/bagtricks_R50-ibn.yml --fast-reid-weights logs/AICUP/bagtricks_R50-ibn/model_00xx.pth
 ```
 
-
-Demo with BoT-SORT(-ReID) based YOLOX and multi-class.
+If you want to track all `<timestamps>` in the directory, you can execute the bash file we provide.
 ```shell
 cd <BoT-SORT_dir>
-
-# Original example
-python3 tools/demo.py video --path <path_to_video> -f yolox/exps/example/mot/yolox_x_mix_det.py -c pretrained/bytetrack_x_mot17.pth.tar --with-reid --fuse-score --fp16 --fuse --save_result
-
-# Multi-class example
-python3 tools/mc_demo.py video --path <path_to_video> -f yolox/exps/example/mot/yolox_x_mix_det.py -c pretrained/bytetrack_x_mot17.pth.tar --with-reid --fuse-score --fp16 --fuse --save_result
+bash tools/track_all_timestamps.sh --weights "pretrained/yolov7-e6e.pt" --source-dir "AI_CUP_MCMOT_dataset/train/images" --device "0" --fast-reid-config "fast_reid/configs/AICUP/bagtricks_R50-ibn.yml" --fast-reid-weights "logs/AICUP/bagtricks_R50-ibn/model_00xx.pth"
 ```
+
+The submission file and visualized images will be saved by default at `runs/detect/<timestamp>`.
 
 ## Note
 
@@ -232,12 +245,13 @@ In addition, python-based motion estimation techniques are available and can be 
 ## Acknowledgement
 
 A large part of the codes, ideas and results are borrowed from
-[BoT-SORT](https://github.com/NirAharon/BoT-SORT) 
-[ByteTrack](https://github.com/ifzhang/ByteTrack), 
-[StrongSORT](https://github.com/dyhBUPT/StrongSORT),
-[FastReID](https://github.com/JDAI-CV/fast-reid),
-[YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) and
-[YOLOv7](https://github.com/wongkinyiu/yolov7). 
+- [BoT-SORT](https://github.com/NirAharon/BoT-SORT)
+- [ByteTrack](https://github.com/ifzhang/ByteTrack)
+- [StrongSORT](https://github.com/dyhBUPT/StrongSORT)
+- [FastReID](https://github.com/JDAI-CV/fast-reid)
+- [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX)
+- [YOLOv7](https://github.com/wongkinyiu/yolov7)
+
 Thanks for their excellent work!
 
 

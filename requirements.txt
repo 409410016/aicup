@@ -16,6 +16,7 @@ filterpy
 h5py
 matplotlib
 scipy
+seaborn
 prettytable
 easydict
 tensorboard
