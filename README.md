@@ -154,6 +154,9 @@ python fast_reid/datasets/generate_AICUP_patches.py --data_path <dataets_dir>/AI
 
  
 ## Model Zoo for MOT17 & COCO
+> [!TIP]
+> We recommend using YOLOv7 as the object detection model for tracking
+
 Download and store the trained models in 'pretrained' folder as follow:
 ```
 <BoT-SORT_dir>/pretrained
@@ -199,12 +202,14 @@ File "./fast_reid/fastreid/evaluation/reid_evaluation.py", line 107, in evaluate
 AssertionError: Error: all query identities do not appear in gallery
 ```
 
-### Train the YOLOv7 for AICUP
+### Fine-tune YOLOv7 for AICUP
+> [!WARNING]
+> We only implemented the fine-tuning interface for `yolov7`
+> If you need to change the object detection model, please do it yourself.
+
 ToDo
 
 ## Tracking for AICUP (Demo)
-> [!TIP]
-> We recommend using YOLOv7 as the object detection model for tracking
 
 Track one `<timestamp>` with BoT-SORT(-ReID) based YOLOv7 and multi-class (We only output class: 'car').
 ```shell
