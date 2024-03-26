@@ -18,14 +18,13 @@
 
 
 ## ToDo
-- [ ] Fine-tune `yolov7`
-- [ ] Complete `yolov7` guide
-- [x] Implement The output of the `demo code`
-- [ ] Implement single camera evaluation code
-- [ ] Visualize results on AICUP train_set
+- [x] Complete evaluation guide
+- [x] Visualize results on AICUP train_set
 - [ ] Release test set
 
 ### Visualization results on AICUP train_set
+
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/Ofc7FS5D8uY/0.jpg)](https://youtu.be/Ofc7FS5D8uY)
 
 
 ## Installation
@@ -140,6 +139,29 @@ Download the AI_CUP dataset, original dataset structure is:
 │   │   ├── ...
 ```
 
+### Ground Truth Format
+Each image corresponds to a text file, an example is provided below:
+
+> [!WARNING]
+> **The coordinates and dimensions of the Ground Truth data are normalized**
+
+class|center_x|center_y|width   |height|track_ID|
+-----|--------|--------|--------|------|--------|
+0    |0.704687|0.367592|0.032291|0.1   |1       |
+
+```python
+# image_name1.txt
+
+0 0.704687 0.367592 0.032291 0.1 1
+0 0.704166 0.403703 0.030208 0.087037 2
+0 0.929166 0.710185 0.051041 0.162962 3
+0 0.934114 0.750925 0.084895 0.162962 4
+0 0.780208 0.273148 0.023958 0.062962 5
+0 0.780989 0.246296 0.022395 0.066666 6
+```
+
+### Prepare ReID Dataset
+
 For training the ReID, detection patches must be generated as follows:   
 
 ```shell
@@ -152,7 +174,55 @@ python fast_reid/datasets/generate_AICUP_patches.py --data_path <dataets_dir>/AI
 > [!TIP]
 > You can link dataset to FastReID ```export FASTREID_DATASETS=<BoT-SORT_dir>/fast_reid/datasets```. If left unset, the default is `fast_reid/datasets` 
 
- 
+
+### Prepare YOLOv7 Dataset
+
+> [!WARNING]
+> We only implemented the fine-tuning interface for `yolov7`
+> If you need to change the object detection model, please do it yourself.
+
+run the `yolov7/tools/AICUP_to_YOLOv7.py` by following commend:
+```
+cd <BoT-SORT_dir>
+python yolov7/tools/AICUP_to_YOLOv7.py --AICUP_dir datasets/AI_CUP_MCMOT_dataset/train --YOLOv7_dir datasets/AI_CUP_MCMOT_dataset/yolo
+```
+The file tree after conversion by `AICUP_to_YOLOv7.py` is as follows:
+
+```python
+/datasets/AI_CUP_MCMOT_dataset/yolo
+    ├── train
+    │   ├── images
+    │   │   ├── 0902_150000_151900_0_00001.jpg (Date_StartTime_EndTime_CamID_FrameNum)
+    │   │   ├── 0902_150000_151900_0_00002.jpg
+    │   │   ├── ...
+    │   │   ├── 0902_150000_151900_7_00001.jpg
+    │   │   ├── 0902_150000_151900_7_00002.jpg
+    │   │   ├── ...
+    │   └── labels
+    │   │   ├── 0902_150000_151900_0_00001.txt (Date_StartTime_EndTime_CamID_FrameNum)
+    │   │   ├── 0902_150000_151900_0_00002.txt
+    │   │   ├── ...
+    │   │   ├── 0902_150000_151900_7_00001.txt
+    │   │   ├── 0902_150000_151900_7_00002.txt
+    │   │   ├── ...
+    ├── valid
+    │   ├── images
+    │   │   ├── 1015_190000_191900_0_00001.jpg (Date_StartTime_EndTime_CamID_FrameNum)
+    │   │   ├── 1015_190000_191900_0_00002.jpg
+    │   │   ├── ...
+    │   │   ├── 1015_190000_191900_7_00001.jpg
+    │   │   ├── 1015_190000_191900_7_00002.jpg
+    │   │   ├── ...
+    │   └── labels
+    │   │   ├── 1015_190000_191900_0_00001.txt (Date_StartTime_EndTime_CamID_FrameNum)
+    │   │   ├── 1015_190000_191900_0_00002.txt
+    │   │   ├── ...
+    │   │   ├── 1015_190000_191900_7_00001.txt
+    │   │   ├── 1015_190000_191900_7_00002.txt
+    │   │   ├── ...
+```
+
+
 ## Model Zoo for MOT17 & COCO
 > [!TIP]
 > We recommend using YOLOv7 as the object detection model for tracking
@@ -203,57 +273,10 @@ AssertionError: Error: all query identities do not appear in gallery
 ```
 
 ### Fine-tune YOLOv7 for AICUP
-> [!WARNING]
-> We only implemented the fine-tuning interface for `yolov7`
-> If you need to change the object detection model, please do it yourself.
-
-#### Prepare Dataset
-
-run the `AICUP_to_YOLOv7.py` by following commend:
-```
-cd <BoT-SORT_dir>
-python yolov7/tools/AICUP_to_YOLOv7.py --AICUP_dir datasets/AI_CUP_MCMOT_dataset/train --YOLOv7_dir datasets/AI_CUP_MCMOT_dataset/yolo
-```
-The file tree after conversion by `AICUP_to_YOLOv7.py` is as follows:
-
-```python
-/datasets/AI_CUP_MCMOT_dataset/yolo
-    ├── train
-    │   ├── images
-    │   │   ├── 0902_150000_151900_0_00001.jpg (Date_StartTime_EndTime_CamID_FrameNum)
-    │   │   ├── 0902_150000_151900_0_00002.jpg
-    │   │   ├── ...
-    │   │   ├── 0902_150000_151900_7_00001.jpg
-    │   │   ├── 0902_150000_151900_7_00002.jpg
-    │   │   ├── ...
-    │   └── labels
-    │   │   ├── 0902_150000_151900_0_00001.txt (Date_StartTime_EndTime_CamID_FrameNum)
-    │   │   ├── 0902_150000_151900_0_00002.txt
-    │   │   ├── ...
-    │   │   ├── 0902_150000_151900_7_00001.txt
-    │   │   ├── 0902_150000_151900_7_00002.txt
-    │   │   ├── ...
-    ├── valid
-    │   ├── images
-    │   │   ├── 1015_190000_191900_0_00001.jpg (Date_StartTime_EndTime_CamID_FrameNum)
-    │   │   ├── 1015_190000_191900_0_00002.jpg
-    │   │   ├── ...
-    │   │   ├── 1015_190000_191900_7_00001.jpg
-    │   │   ├── 1015_190000_191900_7_00002.jpg
-    │   │   ├── ...
-    │   └── labels
-    │   │   ├── 1015_190000_191900_0_00001.txt (Date_StartTime_EndTime_CamID_FrameNum)
-    │   │   ├── 1015_190000_191900_0_00002.txt
-    │   │   ├── ...
-    │   │   ├── 1015_190000_191900_7_00001.txt
-    │   │   ├── 1015_190000_191900_7_00002.txt
-    │   │   ├── ...
-```
 
 - The dataset path is configured in `yolov7/data/AICUP.yaml`.
 - The model architecture can be configured in `yolov7/cfg/training/yolov7-AICUP.yaml`.
 - Training hyperparameters are configured in `yolov7/data/hyp.scratch.custom.yaml` (default is `yolov7/data/hyp.scratch.p5.yaml`).
-
 
 Single GPU finetuning for AICUP dataset
 
@@ -272,7 +295,11 @@ Multiple GPU training and other details please refer to [YOLOv7-Training](https:
 
 The training results will be saved by default at `runs/train`.
 
-## Tracking for AICUP (Demo)
+## Tracking and create the submit file for AICUP (Demo)
+
+> [!WARNING]
+> We only implemented the `tools/mc_demo_yolov7.py`(`mc` mean multi-class) for AICUP
+> If you need to use other tracking programs in `tools`, please do it yourself.
 
 Track one `<timestamp>` with BoT-SORT(-ReID) based YOLOv7 and multi-class (We only output class: 'car').
 ```shell
@@ -287,6 +314,47 @@ bash tools/track_all_timestamps.sh --weights "pretrained/yolov7-e6e.pt" --source
 ```
 
 The submission file and visualized images will be saved by default at `runs/detect/<timestamp>`.
+
+## Evulate Format
+Using same format on [py-motmetrics](https://github.com/cheind/py-motmetrics)
+
+> [!CAUTION]
+> **The evulate images resolution is `1280 * 720`**
+
+frame_id| track_id | bb_left|  bb_top | bb_width |bb_height|conf|3d_x|3d_y|3d_z|
+--------| -------- | -------| --------| ---------|-------- |----|----|----|----|
+1       |1         |843     |742      | 30       |30       |0.8 |-1  |-1  |-1  |
+
+## Evulate your submission
+Before evaluate, you need to run `tools/datasets/AICUP_to_MOT15.py` to convert ground truth into submission format:
+
+```bash
+cd <BoT-SORT_dir>
+python tools/datasets/AICUP_to_MOT15.py --AICUP_dir "your AICUP dataset path" --MOT15_dir "converted dataset directory" --imgsz "img size, (height, width)"
+```
+
+You can used `tools/evaluate.py` to Evulate your submission by following commend:
+
+```bash
+cd <BoT-SORT_dir>
+python tools/evaluate.py --gt_dir "Path to the ground truth directory" --ts_dir "Path to the tracking result directory"
+```
+
+The gt_dir and ts_dir file tree is as follows:
+
+```python
+├── gt_dir
+│   ├── 0902_150000_151900.txt
+│   ├── 0902_190000_191900.txt
+│   ├── ...
+├── ts_dir
+│   ├── 0902_150000_151900.txt
+│   ├── 0902_190000_191900.txt
+│   ├── ...
+```
+
+Than you can get the result:
+![](demo_readme/eval_res.png)
 
 ## Note
 
