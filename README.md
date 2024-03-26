@@ -325,22 +325,22 @@ frame_id| track_id | bb_left|  bb_top | bb_width |bb_height|conf|3d_x|3d_y|3d_z|
 --------| -------- | -------| --------| ---------|-------- |----|----|----|----|
 1       |1         |843     |742      | 30       |30       |0.8 |-1  |-1  |-1  |
 
-## Evulate your submission
-Before evaluate, you need to run `tools/datasets/AICUP_to_MOT15.py` to convert ground truth into submission format:
+## Evaluate your submission
+Before evaluation, you need to run `tools/datasets/AICUP_to_MOT15.py` to convert ground truth into submission format:
 
 ```bash
 cd <BoT-SORT_dir>
 python tools/datasets/AICUP_to_MOT15.py --AICUP_dir "your AICUP dataset path" --MOT15_dir "converted dataset directory" --imgsz "img size, (height, width)"
 ```
 
-You can used `tools/evaluate.py` to Evulate your submission by following commend:
+You can use `tools/evaluate.py` to evaluate your submission by the following command:
 
 ```bash
 cd <BoT-SORT_dir>
 python tools/evaluate.py --gt_dir "Path to the ground truth directory" --ts_dir "Path to the tracking result directory"
 ```
 
-The gt_dir and ts_dir file tree is as follows:
+The `gt_dir` and `ts_dir` file trees are as follows:
 
 ```python
 ├── gt_dir
@@ -353,7 +353,7 @@ The gt_dir and ts_dir file tree is as follows:
 │   ├── ...
 ```
 
-Than you can get the result:
+Then you can get the result:
 ![](demo_readme/eval_res.png)
 
 ## Note
