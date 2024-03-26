@@ -298,8 +298,8 @@ The training results will be saved by default at `runs/train`.
 ## Tracking and create the submit file for AICUP (Demo)
 
 > [!WARNING]
-> We only implemented the `tools/mc_demo_yolov7.py`(`mc` mean multi-class) for AICUP
-> If you need to use other tracking programs in `tools`, please do it yourself.
+> - We only implemented the `tools/mc_demo_yolov7.py`( `mc` mean multi-class) for AICUP
+> - If you need to use other tracking programs in `tools`, please do it yourself.
 
 Track one `<timestamp>` with BoT-SORT(-ReID) based YOLOv7 and multi-class (We only output class: 'car').
 ```shell
