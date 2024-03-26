@@ -9,6 +9,10 @@ import torch
 import yaml
 from tqdm import tqdm
 
+import sys
+sys.path.insert(0, './yolov7')
+sys.path.append('.')
+
 from models.experimental import attempt_load
 from utils.datasets import create_dataloader
 from utils.general import coco80_to_coco91_class, check_dataset, check_file, check_img_size, check_requirements, \

@@ -167,7 +167,7 @@ Download and store the trained models in 'pretrained' folder as follow:
 
 - For multi-class MOT use [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) or [YOLOv7](https://github.com/WongKinYiu/yolov7) trained on COCO (or any custom weights). 
 
-## Training
+## Training (Fine-tune)
 
 ### Train the ReID Module for AICUP
 
@@ -207,7 +207,70 @@ AssertionError: Error: all query identities do not appear in gallery
 > We only implemented the fine-tuning interface for `yolov7`
 > If you need to change the object detection model, please do it yourself.
 
-ToDo
+#### Prepare Dataset
+
+run the `AICUP_to_YOLOv7.py` by following commend:
+```
+cd <BoT-SORT_dir>
+python yolov7/tools/AICUP_to_YOLOv7.py --AICUP_dir datasets/AI_CUP_MCMOT_dataset/train --YOLOv7_dir datasets/AI_CUP_MCMOT_dataset/yolo
+```
+The file tree after conversion by `AICUP_to_YOLOv7.py` is as follows:
+
+```python
+/datasets/AI_CUP_MCMOT_dataset/yolo
+    ├── train
+    │   ├── images
+    │   │   ├── 0902_150000_151900_0_00001.jpg (Date_StartTime_EndTime_CamID_FrameNum)
+    │   │   ├── 0902_150000_151900_0_00002.jpg
+    │   │   ├── ...
+    │   │   ├── 0902_150000_151900_7_00001.jpg
+    │   │   ├── 0902_150000_151900_7_00002.jpg
+    │   │   ├── ...
+    │   └── labels
+    │   │   ├── 0902_150000_151900_0_00001.txt (Date_StartTime_EndTime_CamID_FrameNum)
+    │   │   ├── 0902_150000_151900_0_00002.txt
+    │   │   ├── ...
+    │   │   ├── 0902_150000_151900_7_00001.txt
+    │   │   ├── 0902_150000_151900_7_00002.txt
+    │   │   ├── ...
+    ├── valid
+    │   ├── images
+    │   │   ├── 1015_190000_191900_0_00001.jpg (Date_StartTime_EndTime_CamID_FrameNum)
+    │   │   ├── 1015_190000_191900_0_00002.jpg
+    │   │   ├── ...
+    │   │   ├── 1015_190000_191900_7_00001.jpg
+    │   │   ├── 1015_190000_191900_7_00002.jpg
+    │   │   ├── ...
+    │   └── labels
+    │   │   ├── 1015_190000_191900_0_00001.txt (Date_StartTime_EndTime_CamID_FrameNum)
+    │   │   ├── 1015_190000_191900_0_00002.txt
+    │   │   ├── ...
+    │   │   ├── 1015_190000_191900_7_00001.txt
+    │   │   ├── 1015_190000_191900_7_00002.txt
+    │   │   ├── ...
+```
+
+- The dataset path is configured in `yolov7/data/AICUP.yaml`.
+- The model architecture can be configured in `yolov7/cfg/training/yolov7-AICUP.yaml`.
+- Training hyperparameters are configured in `yolov7/data/hyp.scratch.custom.yaml` (default is `yolov7/data/hyp.scratch.p5.yaml`).
+
+
+Single GPU finetuning for AICUP dataset
+
+[`yolov7_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7_training.pt) [`yolov7x_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7x_training.pt) [`yolov7-w6_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6_training.pt) [`yolov7-e6_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-e6_training.pt) [`yolov7-d6_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-d6_training.pt) [`yolov7-e6e_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-e6e_training.pt)
+
+``` shell
+cd <BoT-SORT_dir>
+# finetune p5 models
+python yolov7/train.py --device 0 --batch-size 16 --epochs 50 --data yolov7/data/AICUP.yaml --img 1280 1280 --cfg yolov7/cfg/training/yolov7-AICUP.yaml --weights 'pretrained/yolov7-e6e.pt' --name yolov7-AICUP --hyp data/hyp.scratch.custom.yaml
+
+# finetune p6 models
+python yolov7/train_aux.py --device 0 --batch-size 16 --epochs 50 --data yolov7/data/AICUP.yaml --img 1280 1280 --cfg yolov7/cfg/training/yolov7-w6-AICUP.yaml --weights 'pretrained/yolov7-e6e.pt' --name yolov7-w6-AICUP --hyp data/hyp.scratch.custom.yaml
+```
+
+Multiple GPU training and other details please refer to [YOLOv7-Training](https://github.com/WongKinYiu/yolov7?tab=readme-ov-file#training)
+
+The training results will be saved by default at `runs/train`.
 
 ## Tracking for AICUP (Demo)
 

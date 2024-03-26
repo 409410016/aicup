@@ -1,4 +1,7 @@
-import motmetrics as mm
+import sys
+sys.path.append('tools/py_motmetrics')
+
+import py_motmetrics.motmetrics as mm
 import argparse
 import os
 from loguru import logger
@@ -47,6 +50,7 @@ def evaluate(gt_dir, ts_dir, mode):
 
                 summary = mh.compute_many([acc], metrics=metrics, generate_overall=True)
                 print(f"Score for {name}: IDF1 {summary.idf1.OVERALL}, MOTA {summary.mota.OVERALL}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Evaluate multiple object tracking results.')
