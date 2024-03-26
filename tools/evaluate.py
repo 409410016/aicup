@@ -1,9 +1,10 @@
 import sys
 sys.path.append('tools/py_motmetrics')
 
-import py_motmetrics.motmetrics as mm
-import argparse
 import os
+import argparse
+import py_motmetrics.motmetrics as mm
+
 from loguru import logger
 
 def evaluate(gt_dir, ts_dir, mode):
