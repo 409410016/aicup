@@ -72,7 +72,7 @@ pip install faiss-gpu
 
 ## Data Preparation
 
-Download the AI_CUP dataset, original dataset structure is:
+Download the AI_CUP dataset, the original dataset structure is:
 ```python
 ├── train
 │   ├── images
@@ -181,7 +181,7 @@ python fast_reid/datasets/generate_AICUP_patches.py --data_path <dataets_dir>/AI
 > We only implemented the fine-tuning interface for `yolov7`
 > If you need to change the object detection model, please do it yourself.
 
-run the `yolov7/tools/AICUP_to_YOLOv7.py` by following commend:
+run the `yolov7/tools/AICUP_to_YOLOv7.py` by the following command:
 ```
 cd <BoT-SORT_dir>
 python yolov7/tools/AICUP_to_YOLOv7.py --AICUP_dir datasets/AI_CUP_MCMOT_dataset/train --YOLOv7_dir datasets/AI_CUP_MCMOT_dataset/yolo
@@ -227,7 +227,7 @@ The file tree after conversion by `AICUP_to_YOLOv7.py` is as follows:
 > [!TIP]
 > We recommend using YOLOv7 as the object detection model for tracking
 
-Download and store the trained models in 'pretrained' folder as follow:
+Download and store the trained models in 'pretrained' folder as follows:
 ```
 <BoT-SORT_dir>/pretrained
 ```
@@ -237,11 +237,11 @@ Download and store the trained models in 'pretrained' folder as follow:
 
 - For multi-class MOT use [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) or [YOLOv7](https://github.com/WongKinYiu/yolov7) trained on COCO (or any custom weights). 
 
-## Training (Fine-tune)
+## Training (Fine-tuning)
 
 ### Train the ReID Module for AICUP
 
-After generating AICUP ReID dataset as described in the 'Data Preparation' section.
+After generating the AICUP ReID dataset as described in the 'Data Preparation' section.
 
 ```shell
 cd <BoT-SORT_dir>
@@ -254,7 +254,7 @@ The training results are stored by default in ```logs/AICUP/bagtricks_R50-ibn```
 
 You can refer to `fast_reid/fastreid/config/defaults.py` to find out which hyperparameters can be modified.
 
-Refer to [FastReID](https://github.com/JDAI-CV/fast-reid) repository for addition explanations and options.
+Refer to [FastReID](https://github.com/JDAI-CV/fast-reid) repository for additional explanations and options.
 
 > [!IMPORTANT]  
 > Since we did not generate the `query` and `gallery` datasets required for evaluation when producing the ReID dataset (`MOT17_ReID` provided by BoT-SORT also not provide them), please skip the following TrackBack when encountered after training completion.
@@ -291,11 +291,11 @@ python yolov7/train.py --device 0 --batch-size 16 --epochs 50 --data yolov7/data
 python yolov7/train_aux.py --device 0 --batch-size 16 --epochs 50 --data yolov7/data/AICUP.yaml --img 1280 1280 --cfg yolov7/cfg/training/yolov7-w6-AICUP.yaml --weights 'pretrained/yolov7-e6e.pt' --name yolov7-w6-AICUP --hyp data/hyp.scratch.custom.yaml
 ```
 
-Multiple GPU training and other details please refer to [YOLOv7-Training](https://github.com/WongKinYiu/yolov7?tab=readme-ov-file#training)
+For multiple GPU training and other details, please refer to [YOLOv7-Training](https://github.com/WongKinYiu/yolov7?tab=readme-ov-file#training).
 
 The training results will be saved by default at `runs/train`.
 
-## Tracking and create the submit file for AICUP (Demo)
+## Tracking and creating the submission file for AICUP (Demo)
 
 > [!WARNING]
 > - We only implemented the `tools/mc_demo_yolov7.py`( `mc` mean multi-class) for AICUP
@@ -307,7 +307,7 @@ cd <BoT-SORT_dir>
 python3 tools/mc_demo_yolov7.py --weights pretrained/yolov7-e6e.pt --source AI_CUP_MCMOT_dataset/train/images/<timestamp> --device "0" --name "<timestamp>" --fuse-score --agnostic-nms --with-reid --fast-reid-config fast_reid/configs/AICUP/bagtricks_R50-ibn.yml --fast-reid-weights logs/AICUP/bagtricks_R50-ibn/model_00xx.pth
 ```
 
-If you want to track all `<timestamps>` in the directory, you can execute the bash file we provide.
+If you want to track all `<timestamps>` in the directory, you can execute the bash file we provided.
 ```shell
 cd <BoT-SORT_dir>
 bash tools/track_all_timestamps.sh --weights "pretrained/yolov7-e6e.pt" --source-dir "AI_CUP_MCMOT_dataset/train/images" --device "0" --fast-reid-config "fast_reid/configs/AICUP/bagtricks_R50-ibn.yml" --fast-reid-weights "logs/AICUP/bagtricks_R50-ibn/model_00xx.pth"
@@ -315,32 +315,34 @@ bash tools/track_all_timestamps.sh --weights "pretrained/yolov7-e6e.pt" --source
 
 The submission file and visualized images will be saved by default at `runs/detect/<timestamp>`.
 
-## Evulate Format
-Using same format on [py-motmetrics](https://github.com/cheind/py-motmetrics)
+## Evaluation format
+
+The evaluation format is the same as [py-motmetrics](https://github.com/cheind/py-motmetrics).
 
 > [!CAUTION]
-> **The evulate images resolution is `1280 * 720`**
+> **The images resolution for evaluation is `1280 * 720`**
 
 frame_id| track_id | bb_left|  bb_top | bb_width |bb_height|conf|3d_x|3d_y|3d_z|
 --------| -------- | -------| --------| ---------|-------- |----|----|----|----|
 1       |1         |843     |742      | 30       |30       |0.8 |-1  |-1  |-1  |
 
-## Evulate your submission
-Before evaluate, you need to run `tools/datasets/AICUP_to_MOT15.py` to convert ground truth into submission format:
+## Evaluate your submission
+
+Before evaluation, you need to run `tools/datasets/AICUP_to_MOT15.py` to convert ground truth into submission format:
 
 ```bash
 cd <BoT-SORT_dir>
 python tools/datasets/AICUP_to_MOT15.py --AICUP_dir "your AICUP dataset path" --MOT15_dir "converted dataset directory" --imgsz "img size, (height, width)"
 ```
 
-You can used `tools/evaluate.py` to Evulate your submission by following commend:
+You can use `tools/evaluate.py` to evaluate your submission by the following command:
 
 ```bash
 cd <BoT-SORT_dir>
 python tools/evaluate.py --gt_dir "Path to the ground truth directory" --ts_dir "Path to the tracking result directory"
 ```
 
-The gt_dir and ts_dir file tree is as follows:
+The `gt_dir` and `ts_dir` file trees are as follows:
 
 ```python
 ├── gt_dir
@@ -353,7 +355,7 @@ The gt_dir and ts_dir file tree is as follows:
 │   ├── ...
 ```
 
-Than you can get the result:
+Then you can get the result:
 ![](demo_readme/eval_res.png)
 
 ## Note
