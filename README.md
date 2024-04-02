@@ -50,9 +50,9 @@ The code was tested using torch 1.11.0+cu113 and torchvision==0.12.0
 pip install numpy
 ```
 
-**Step 5.** Install `requirement.txt`
+**Step 5.** Install `requirements.txt`
 ```shell
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 **Step 6.** Install [pycocotools](https://github.com/cocodataset/cocoapi).
