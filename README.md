@@ -278,6 +278,9 @@ AssertionError: Error: all query identities do not appear in gallery
 - The model architecture can be configured in `yolov7/cfg/training/yolov7-AICUP.yaml`.
 - Training hyperparameters are configured in `yolov7/data/hyp.scratch.custom.yaml` (default is `yolov7/data/hyp.scratch.p5.yaml`).
 
+> [!CAUTION]
+> **The Hyperparameter teams cannot be adjusted for the YOLOv7 model architecture, only the Anchor box can be adjusted in `yolov7/cfg/training/yolov7-AICUP.yaml`.**
+
 Single GPU finetuning for AICUP dataset
 
 [`yolov7_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7_training.pt) [`yolov7x_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7x_training.pt) [`yolov7-w6_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-w6_training.pt) [`yolov7-e6_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-e6_training.pt) [`yolov7-d6_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-d6_training.pt) [`yolov7-e6e_training.pt`](https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7-e6e_training.pt)
