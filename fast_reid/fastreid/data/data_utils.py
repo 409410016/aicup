@@ -153,7 +153,7 @@ class DataLoaderX(DataLoader):
         super().__init__(**kwargs)
         ### device = torch.device("cpu") ###
         ###self.stream = torch.Stream( 
-        torch.cuda.Stream(
+        self.stream = torch.cuda.Stream(
             local_rank
         )  # create a new cuda stream in each process
         self.local_rank = local_rank

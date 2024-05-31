@@ -8,8 +8,10 @@ import logging
 import os
 
 import torch
-from torch._six import string_classes
-from collections import Mapping
+###from torch._six import string_classes
+int_classes = int
+string_classes = str
+from collections.abc import Mapping
 
 from fast_reid.fastreid.config import configurable
 from fast_reid.fastreid.utils import comm
